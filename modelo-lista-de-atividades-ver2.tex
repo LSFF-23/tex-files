@@ -1,0 +1,206 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{minted}
+\usepackage{titling}
+\usepackage[left=3cm,right=3cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+
+\setlength{\droptitle}{-6 em}
+\pagenumbering{gobble}
+\renewcommand{\arraystretch}{1.3}
+
+\title{Circuitos Digitais II: Aulas 2-3}
+\author{Luis Felipe Ferreira Soares}
+\date{13/11/2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Flip-Flops}
+\subsection{}
+\begin{table}[h!]
+\centering
+\label{tab:not_clk}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    Circuito & CLK & D & R & S & Q & $\overline{Q}$\\
+    \hline
+    \multirow{6}{*}{\includegraphics[width=0.2\textwidth]{1_1.png}}
+    & $\downarrow$ & 0 & 0 & 0 & 0 & 1\\
+    \cline{2-7}
+    & $\downarrow$ & 1 & 0 & 0 & 1 & 0\\
+    \cline{2-7}
+    & $\uparrow$ & x & 0 & 0 & Q & $\overline{Q}$\\
+    \cline{2-7}
+    & x & x & 1 & 0 & 0 & 1\\
+    \cline{2-7}
+    & x & x & 0 & 1 & 1 & 0\\
+    \cline{2-7}
+    & x & x & 1 & 1 & 1 & 1\\
+    \hline
+\end{tabular}
+\end{table}
+
+\subsection{}
+\begin{table}[h!]
+\centering
+\label{tab:not_reset}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    Circuito & CLK & D & R & S & Q & $\overline{Q}$\\
+    \hline
+    \multirow{6}{*}{\includegraphics[width=0.2\textwidth]{1_2.png}}
+    & $\uparrow$ & 0 & 1 & 0 & 0 & 1\\
+    \cline{2-7}
+    & $\uparrow$ & 1 & 1 & 0 & 1 & 0\\
+    \cline{2-7}
+    & $\downarrow$ & x & 1 & 0 & Q & $\overline{Q}$\\
+    \cline{2-7}
+    & x & x & 0 & 0 & 0 & 1\\
+    \cline{2-7}
+    & x & x & 1 & 1 & 1 & 0\\
+    \cline{2-7}
+    & x & x & 0 & 1 & 1 & 1\\
+    \hline
+\end{tabular}
+\end{table}
+
+\subsection{}
+\begin{table}[h!]
+\centering
+\label{tab:not_reset_clk}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    Circuito & CLK & D & R & S & Q & $\overline{Q}$\\
+    \hline
+    \multirow{6}{*}{\includegraphics[width=0.2\textwidth]{1_2.png}}
+    & $\downarrow$ & 0 & 1 & 0 & 0 & 1\\
+    \cline{2-7}
+    & $\downarrow$ & 1 & 1 & 0 & 1 & 0\\
+    \cline{2-7}
+    & $\uparrow$ & x & 1 & 0 & Q & $\overline{Q}$\\
+    \cline{2-7}
+    & x & x & 0 & 0 & 0 & 1\\
+    \cline{2-7}
+    & x & x & 1 & 1 & 1 & 0\\
+    \cline{2-7}
+    & x & x & 0 & 1 & 1 & 1\\
+    \hline
+\end{tabular}
+\end{table}
+
+\section{Quais as vantagens dos Latches? Quais são as suas desvantagens?}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Vantagens}: Costumam ser mais rápidos que flip-flops de borda, pois podem mudar de estado a qualquer momento que o sinal de enable esteja em alto, sem necessidade de aguardar pela subida de borda como nos flip-flops, característica que também é útil em aplicações de controle de memória. Em termos físicos, demandam menos portas lógicas que os flip-flops de borda, portanto ocupam menos espaço e consomem menos energia.
+    \item \textbf{Desvantagens}: A transparência em relação a entrada enquanto o enable está ativo também pode ser uma desvantagem, pois em sistemas de alta sensibilidade isto pode ocasionar glitches e condições de corrida inesperadas, mesmo quando o enable está diretamente conectado a um clock.
+\end{itemize}
+
+\section{Realize uma pesquisa e descreva em quais situações (ou aplicações) podem/devem ser usados Latches.}
+São utilizados em Static Random Access Memory (SRAMs) devido a sua velocidade, buffers e registradores intermediários/temporários pelo mesmo motivo, amostragem/inserção de dados de modo assíncrono e em sistemas baseados em \textbf{Latching Logic}, que utiliza as principais vantagens dos latches para otimizar o tempo entre os estágios de uma pipeline, permitindo que os dados propaguem por mais tempo, otimizando o caminho crítico.
+
+\section{Construa em Verilog ou VHDL um multiplexador de 4 entradas e uma saída com largura de bits parametrizável. Use sentenças IF – ELSIF para produzir a presença de Latches. Realize a síntese lógica e analise o esquemático RTL. A ferramenta inferiu Latches? Quantos Latches foram inferidos? Realize um testbench e verifique o funcionamento através de simulação.}
+\subsection{Código em Verilog}
+\begin{minted}{verilog}
+module mux4to1_p #(parameter N = 4) (in3, in2, in1, in0, sel, out);
+input [N-1:0] in3, in2, in1, in0;
+input [1:0] sel;
+output reg [N-1:0] out;
+
+always @* begin
+    if (sel == 2'b00) out = in0;
+    else if (sel == 2'b01) out = in1;
+    else if (sel == 2'b10) out = in2;
+    else if (sel == 2'b11) out = in3;
+end
+
+endmodule
+\end{minted}
+
+\subsection{Foram inferidos 4 latches}
+\includegraphics[width=1\textwidth]{2_3.png}
+
+\subsection{Testbench}
+\begin{minted}{verilog}
+module mux4to1_p_tb;
+parameter N = 4;
+reg [N-1:0] D3, D2, D1, D0;
+reg [1:0] sel;
+wire [N-1:0] out;
+
+mux4to1_p#(N) dut (D3, D2, D1, D0, sel, out);
+
+always #1 sel[0] = !sel[0];
+always #2 sel[1] = !sel[1];
+
+initial begin
+    $display("  D3  |  D2  |  D1  |  D0  | sel | out ");
+    $monitor(" %4b | %4b | %4b | %4b | %3b | %b", D3, D2, D1, D0, sel, out);
+    sel = 0;
+    D3 = 4'b1111; D2 = 4'b0111; D1 = 4'b0011; D0 = 4'b0001;
+    #4 $finish(0);
+end
+
+endmodule
+\end{minted}
+
+\subsection{Simulação}
+\includegraphics[width=1\textwidth]{2_3-wave.png}
+
+\newpage
+
+\section{Repita o exercício anterior usando diretivas CASE.}
+\subsection{Código em Verilog}
+\begin{minted}{verilog}
+module mux_v2 #(parameter N = 4) (in3, in2, in1, in0, sel, out);
+input [N-1:0] in3, in2, in1, in0;
+input [1:0] sel;
+output reg [N-1:0] out;
+
+always @* begin
+    case (sel)
+        2'b00: out = in0;
+        2'b01: out = in1;
+        2'b10: out = in2;
+        2'b11: out = in3;
+    endcase
+end
+
+endmodule
+\end{minted}
+
+\subsection{Não foram inferidos latches}
+\includegraphics[width=1\textwidth]{2_4.png}
+
+\newpage
+
+\subsection{Testbench}
+\begin{minted}{verilog}
+module mux_v2_tb;
+parameter N = 4;
+reg [N-1:0] D3, D2, D1, D0;
+reg [1:0] sel;
+wire [N-1:0] out;
+
+mux_v2#(N) dut (D3, D2, D1, D0, sel, out);
+
+always #1 sel[0] = !sel[0];
+always #2 sel[1] = !sel[1];
+
+initial begin
+    $display("  D3  |  D2  |  D1  |  D0  | sel | out ");
+    $monitor(" %4b | %4b | %4b | %4b | %3b | %b", D3, D2, D1, D0, sel, out);
+    sel = 0;
+    D3 = 4'b1111; D2 = 4'b0111; D1 = 4'b0011; D0 = 4'b0001;
+    #4 $finish(0);
+end
+
+endmodule
+\end{minted}
+
+\subsection{Simulação}
+\includegraphics[width=1\textwidth]{2_4-wave.png}
+
+\end{document}
