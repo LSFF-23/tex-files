@@ -1,0 +1,5 @@
+_minted/
+*.log
+*.aux
+*.gz
+*.pdf
